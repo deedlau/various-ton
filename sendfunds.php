@@ -1,5 +1,7 @@
 <?php
 
+// proof of concept to send transactions via GraphQL in pure PHP, without any SDKs
+
 define('GRAPHQL_URL', 'https://net.ton.dev/graphql'); // GraphQL URL
 define('TIMEOUT', 1*60*1000); // default message timeout, in milliseconds (added to current time); default value is 1 minute
 define('SLEEPTIME', 3); // waiting time between requests, in seconds
@@ -30,6 +32,7 @@ else
 	$privateKey = $argv[4];
 }
 
+// main things are created here
 $boc = create_submitTransaction_boc($srcWalletAddr, $dstWalletAddr, $amount, $privateKey);
 $bocBase64 = base64_encode($boc);
 $bocHash = hex2bin(hash('sha256', $boc));
@@ -44,14 +47,14 @@ file_put_contents("./$bocFileName", $boc);
 echo "Saved to $bocFileName\n\n";
 
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_VERBOSE, false);
+//curl_setopt($ch, CURLOPT_VERBOSE, true); // DEBUG
 curl_setopt($ch, CURLOPT_URL, GRAPHQL_URL);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); 
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 $lastMessageIdBefore = get_last_message_id($ch, $srcWalletAddr);
-echo "Last message ID to wallet before out transaction was: $lastMessageIdBefore\n";
+echo "Last message ID to wallet before this transaction was: $lastMessageIdBefore\n";
 
 // graphql is not caring that much about our messages, so we need to be patient here
 for ($i = 1; $i <= MAX_TRIES; $i++) {

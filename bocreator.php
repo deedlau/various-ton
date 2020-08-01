@@ -1,7 +1,9 @@
 <?php
 
+// creates message BOCs for TONLabs wallet smart-contracts 
+
 require_once './utils.php';
-require_once './sodium_compat-1.13.0/autoload.php';
+require_once './sodium_compat-1.13.0/autoload.php'; // https://github.com/paragonie/sodium_compat, libsodium-like pure PHP crypto library
 
 /**
  * Prepares submitTransaction message BOC for SafeMultisigWallet/SetcodeMultisigWallet wallet smart-contracts of TONLabs in pure PHP
@@ -12,7 +14,7 @@ require_once './sodium_compat-1.13.0/autoload.php';
  * @param string $senderPrivKeySeed Sender wallet custodian Ed25519 private key seed (i.e. 'private' value from multisig.keys.json file of tonos-cli), i.e. '56ac5c54b34d658275968d2689928fad28ad35ba4fad694c9964ea8097e33be3'
  * @param bool $bounce Whether to bounce the transaction of the destination address does not exist (set to false if you need to create that address)
  * @param bool $allBalance Whether to transfer all funds from the sender wallet to the receiver wallet (does not implemented properly in smart-contract code yet)
- * @param int $messageTimestamp Timestamp of external message creation for the wallet (UNIX milliseconds UTC), if set to 0 current timestamp is used
+ * @param int $messageTimestamp Timestamp of external message creation for the wallet (UNIX milliseconds UTC), if set to 0 then current timestamp is used
  * @param int $expire Message expiration period
  * @return string Raw binary BOC contents which can be uploaded to TON network via lite-client (sendfile), FreeTON GraphQL, etc.
  */
@@ -34,7 +36,9 @@ function create_submitTransaction_boc($senderAddr, $receiverAddr, $amount, $send
 	$senderWcPartUnsignedChar = intval($senderWcPart, 10) & 0xFF; // two's complement automatically
 	$receiverWcPartUnsignedChar = intval($receiverWcPart, 10) & 0xFF;
 	
-	// cell 3 (last one)
+	// let's make these cells from last to first
+	
+	// cell 3 (last one), empty
 	$cell3Header = "\x00\x00"; // d1, d2 of a cell: level 0, without hashes, not exotic, no references, not absent, data size is 0, no completion tag
 	$cell3Contents = ''; // no data, empty cell
 	$cell3References = ''; // no references
@@ -85,7 +89,7 @@ function create_submitTransaction_boc($senderAddr, $receiverAddr, $amount, $send
 	$cell1Signature = ParagonIE_Sodium_Compat::crypto_sign_detached($cell1Hash, $senderKeyPrivPub);
 	
 	
-	// cell 1
+	// cell 1, ancillary message params like message creation and expiration times, pubkey and signature
 	$cell1Header = "\x01\xe1"; // d1, d2 of a cell: level 0, without hashes, not exotic, 1 reference, not absent, data size is 225, completion tag is present
 	
 	$cell1ContentsBin = '1'; // unk1, 1 bit
@@ -96,7 +100,7 @@ function create_submitTransaction_boc($senderAddr, $receiverAddr, $amount, $send
 	$cell1References = "\x02"; // reference to cell 2
 	$cell1Data = $cell1Header . $cell1Contents . $cell1References;
 	
-	// cell 0 (first one)
+	// cell 0 (first one), main message params like destination address
 	
 	$cell0Header = "\x01\x45"; // d1, d2 of a cell: level 0, without hashes, not exotic, 1 reference, not absent, data size is 35, completion tag is present
 	
@@ -108,6 +112,8 @@ function create_submitTransaction_boc($senderAddr, $receiverAddr, $amount, $send
 	$cell0Contents = bin_s_to_raw($cell0ContentsBin);
 	$cell0References = "\x01"; // reference to cell 1
 	$cell0Data = $cell0Header . $cell0Contents . $cell0References;
+	
+	// let's pack all these cells into a bag
 	
 	$bocData = "\xb5\xee\x9c\x72"; // magic of serialized_boc
 	$bocData .= "\x41"; // first byte: has_idx = false, has_crc32c = true, has_cache_bits = false, flags = 0, size = 1
@@ -123,7 +129,7 @@ function create_submitTransaction_boc($senderAddr, $receiverAddr, $amount, $send
 	$bocData .= $cell2Data;
 	$bocData .= $cell3Data;
 	
-	$bocData .= pack('V', crc32c_string($bocData)); // crc32c of data
+	$bocData .= pack('V', crc32c_string($bocData)); // crc32c of BOC data
 	
 	
 	return $bocData;

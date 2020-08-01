@@ -1,10 +1,18 @@
 <?php
 
+// various helper functions
+
+/**
+ * Gets current UNIX timestamp (UTC) with milliseconds precision
+ */
 function get_unix_timestamp_ms()
 {
 	return microtime(true) * 1000;
 }
 
+/**
+ * Checks wallet address sanity and split it into workchain and address itself
+ */
 function split_wallet_addr($walletaddr)
 {
 	list($wc, $addr) = explode(':', $walletaddr);
@@ -14,6 +22,9 @@ function split_wallet_addr($walletaddr)
 	return array($wc, $addr);
 }
 
+/**
+ * Converts string of hexadecimal digits to string of binary digits (i.e. "abcd" -> "1010101111001101") with byte-wise 0-padding
+ */
 function hex_s_to_bin_s($hexStr)
 {
 	$hexParts = str_split($hexStr, 2);
@@ -24,6 +35,9 @@ function hex_s_to_bin_s($hexStr)
 	return $result;
 }
 
+/**
+ * Converts string of binary digits to their raw values (i.e. "1010101111001101" -> "\xab\xcd"), expects byte-wise 0-padding
+ */
 function bin_s_to_raw($binary)
 {
     $bytes = str_split($binary, 8);
@@ -34,6 +48,9 @@ function bin_s_to_raw($binary)
     return $result;    
 }
 
+/**
+ * Converts raw string to the string of binary digits (i.e. "\xab\xcd" -> "1010101111001101") with byte-wise 0-padding, opposite to bin_s_to_raw
+ */
 function raw_to_bin_s($rawstr)
 {
 	$result = '';
@@ -72,6 +89,9 @@ function __crc32_reflect($ref, $ch) {
 	return $value;
 }
 
+/**
+ * Calculates CRC32-C checksum of the string
+ */
 function crc32c_string($text) {
 	$crc=0xffffffff;
 	$len=strlen($text);
