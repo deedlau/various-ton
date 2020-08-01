@@ -1,0 +1,4 @@
+[submodule "sodium_compat-1.13.0"]
+	path = sodium_compat-1.13.0
+	url = https://github.com/paragonie/sodium_compat.git
+	branch = v1.13.0
