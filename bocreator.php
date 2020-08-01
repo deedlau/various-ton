@@ -9,7 +9,7 @@ require_once './sodium_compat-1.13.0/autoload.php';
  * @param string $senderAddr Address of funds sender wallet in the form of '0:4810d68c1607e44ac452961f195af81f93ad885beb90c7f5bac35182df6536f8'
  * @param string $receiverAddr Address of funds receiver wallet in the form of '0:4810d68c1607e44ac452961f195af81f93ad885beb90c7f5bac35182df6536f8'
  * @param int $amount Tokens amount to send, in nanotokens
- * @param string $senderPrivKeySeed Sender wallet custodian Ed25519 private key seed (i.e. 'private' value from multisig.keys.json file of tonos-cli)
+ * @param string $senderPrivKeySeed Sender wallet custodian Ed25519 private key seed (i.e. 'private' value from multisig.keys.json file of tonos-cli), i.e. '56ac5c54b34d658275968d2689928fad28ad35ba4fad694c9964ea8097e33be3'
  * @param bool $bounce Whether to bounce the transaction of the destination address does not exist (set to false if you need to create that address)
  * @param bool $allBalance Whether to transfer all funds from the sender wallet to the receiver wallet (does not implemented properly in smart-contract code yet)
  * @param int $messageTimestamp Timestamp of external message creation for the wallet (UNIX milliseconds UTC), if set to 0 current timestamp is used
